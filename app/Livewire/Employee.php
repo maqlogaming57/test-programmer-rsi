@@ -10,35 +10,57 @@ class Employee extends Component
 {
     use WithPagination;
     protected $paginationTheme = 'bootstrap';
-    public $nama, $email, $alamat, $employee_id, $katakunci, $employee_selected_id = [];
+    public $todo, $tanggal, $jam, $status, $employee_id, $katakunci, $employee_selected_id = [];
     public $updateData = false;
     public function store()
     {
 
         $rules = [
-            'nama' => 'required',
-            'email' => 'required|email',
-            'alamat' => 'required',
+            'todo' => 'required|string|max:30',
+            'tanggal' => 'required|date',
+            'jam' => 'required|date_format:H:i',
+            'status' => 'required|in:belum,sedang,sudah',
         ];
-        $pesan = [
-            'nama.required' => 'Nama wajib diisi',
-            'email.required' => 'Email wajib diisi',
-            'email.email' => 'Email tidak valid',
-            'alamat.required' => 'Alamat wajib diisi',
-        ];
-        $validated = $this->validate($rules, $pesan);
-        ModelsEmployee::create($validated);
-        session()->flash('message', 'Data created');
 
+
+        $messages = [
+            'todo.required' => 'Todo wajib diisi.',
+            'todo.max' => 'Todo tidak boleh lebih dari 30 karakter.',
+            'tanggal.required' => 'Tanggal wajib diisi.',
+            'tanggal.date' => 'Format tanggal tidak valid.',
+            'jam.required' => 'Jam wajib diisi.',
+            'jam.date_format' => 'Format jam harus HH:mm (24 jam).',
+            'status.required' => 'Status wajib diisi.',
+            'status.in' => 'Status harus salah satu dari: belum, sedang, atau sudah.',
+        ];
+
+        // Validasi data
+        $validatedData = $this->validate($rules, $messages);
+
+        // Simpan data ke database
+        ModelsEmployee::create([
+            'todo' => $this->todo,
+            'tanggal' => $this->tanggal,
+            'jam' => $this->jam,
+            'status' => $this->status,
+        ]);
+
+
+        // Beri pesan sukses
+        session()->flash('message', 'Data berhasil dibuat.');
+
+        // Bersihkan input setelah berhasil menyimpan
         $this->clear();
     }
+
 
     public function edit($id)
     {
         $data = ModelsEmployee::find($id);
-        $this->nama = $data->nama;
-        $this->email = $data->email;
-        $this->alamat = $data->alamat;
+        $this->todo = $data->todo;
+        $this->tanggal = $data->tanggal;
+        $this->jam = $data->jam;
+        $this->jam = $data->status;
 
         $this->updateData = true;
         $this->employee_id = $id;
@@ -47,15 +69,16 @@ class Employee extends Component
     public function update()
     {
         $rules = [
-            'nama' => 'required',
-            'email' => 'required|email',
-            'alamat' => 'required',
+            'todo' => 'required',
+            'tanggal' => 'required',
+            'jam' => 'required',
+            'status' => 'required',
         ];
         $pesan = [
-            'nama.required' => 'Nama wajib diisi',
-            'email.required' => 'Email wajib diisi',
-            'email.email' => 'Email tidak valid',
-            'alamat.required' => 'Alamat wajib diisi',
+            'todo.required' => 'todo wajib diisi',
+            'tanggal.required' => 'tanggal wajib diisi',
+            'jam.required' => 'jam tidak valid',
+            'status.required' => 'status wajib diisi',
         ];
         $validated = $this->validate($rules, $pesan);
         $data = ModelsEmployee::find($this->employee_id);
@@ -68,21 +91,21 @@ class Employee extends Component
     public function render()
     {
         if ($this->katakunci != null) {
-            $data = ModelsEmployee::where('nama', 'like', '%' . $this->katakunci . '%')
-                ->orwhere('email', 'like', '%' . $this->katakunci . '%')
-                ->orwhere('alamat', 'like', '%' . $this->katakunci . '%')
-                ->orderBy('nama', 'asc')->paginate(2);
+            $data = ModelsEmployee::where('todo', 'like', '%' . $this->katakunci . '%')
+                ->orwhere('tanggal', 'like', '%' . $this->katakunci . '%')
+                ->orwhere('jam', 'like', '%' . $this->katakunci . '%')
+                ->orderBy('status', 'asc')->paginate(2);
         } else {
-            $data = ModelsEmployee::orderBy('nama', 'asc')->paginate(2);
+            $data = ModelsEmployee::orderBy('todo', 'asc')->paginate(2);
         }
         return view('livewire.employee', ['dataEmployees' => $data]);
     }
 
     public function clear()
     {
-        $this->nama = '';
-        $this->email = '';
-        $this->alamat = '';
+        $this->todo = '';
+        $this->tanggal = '';
+        $this->jam = '';
         $this->updateData = false;
         $this->employee_id = '';
         $this->employee_selected_id = [];

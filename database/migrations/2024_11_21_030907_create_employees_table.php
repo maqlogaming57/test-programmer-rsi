@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
-            $table->string('email');
-            $table->string('alamat');
-            $table->timestamps();
+            $table->string('todo', 30);
+            $table->date('tanggal');
+            $table->time('jam');
+            $table->enum('status', ['belum', 'sedang', 'sudah']);
+            $table->timestamps(); // Menambahkan created_at dan updated_at otomatis
         });
     }
 
